@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 
-import Image from 'next/image';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 import Map from '@/app/components/Map';
 import MapLegend from '@/app/components/MapLegend';
-import { Products, productNames } from '@/app/constants';
+import { Products } from '@/app/constants';
+import ProductSelector from './components/ProductSelector';
+import Logo from './components/Logo';
 
 export default function Home() {
   const searchParams = useSearchParams();
@@ -27,35 +28,15 @@ export default function Home() {
 
   return (
     <div className='w-full h-full flex flex-col'>
-      <header className='h-20 p-4 flex items-center gap-4 fixed top-0 left-0 right-0 bg-background box-shadow-lg'>
-        <Image
-          src='/earthshot-dark.webp'
-          alt='Earthshot Logo'
-          width={150}
-          height={75}
-          priority
-        />
-        <span className='text-lg'>Product Scores</span>
-        <div className='ml-auto'>
-          <label className='block text-sm font-medium text-gray-700'>
-            Select product:
-            <select
-              className='mt-1 block w-full border border-gray-300 rounded'
-              value={product}
-              onChange={(e) => setProduct(e.target.value as Products)}
-            >
-              {Object.values(Products).map((code) => (
-                <option key={code} value={code}>
-                  {productNames[code]}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+      <header className='h-16 border-b border-gray-200  p-4 sm:flex items-center gap-4 fixed top-0 left-0 right-0 bg-background box-shadow-lg'>
+        <Logo />
       </header>
-      <main className='flex-1 mt-20 h-full relative'>
+      <main className='flex-1 mt-16 relative bg-gray-500'>
+        <div className='absolute top-0 left-0 sm:left-4 sm:top-4 sm:rounded-sm bg-white box-shadow-lg p-4 w-full sm:w-72 z-10 flex flex-col gap-8'>
+          <ProductSelector product={product} setProduct={setProduct} />
+          <MapLegend />
+        </div>
         <Map center={[-79.9972, 40.4387]} zoom={3} product={product} />
-        <MapLegend />
       </main>
     </div>
   );

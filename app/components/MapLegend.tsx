@@ -1,6 +1,6 @@
 export default function MapLegend() {
   return (
-    <div className='absolute bottom-4 right-4 z-10 bg-white rounded shadow-md p-4 w-64'>
+    <div className='flex flex-col gap-1'>
       <div className='text-sm font-semibold mb-2'>Score Legend</div>
       <div className='relative h-4 rounded overflow-hidden bg-gray-200'>
         <div
