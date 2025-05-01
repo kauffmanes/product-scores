@@ -1,9 +1,10 @@
 'use client';
 import { useRef, useEffect } from 'react';
-
+import ReactDOM from 'react-dom/client';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Products } from '../constants';
+import MapPopup from './MapPopup';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -20,7 +21,16 @@ export default function Map({
 }: Props) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const popupRef = useRef<mapboxgl.Popup | null>(null);
+
   const fillLayerId = 'scored-country-fill';
+  const allCountriesLayerId = 'all-countries-interaction';
+
+  useEffect(() => {
+    if (popupRef.current) {
+      popupRef.current.remove();
+    }
+  }, [product]);
 
   useEffect(() => {
     /**
@@ -53,6 +63,7 @@ export default function Map({
     }
 
     async function loadScores(product: string) {
+      // 1. Fetch the data
       const response = await fetch(`/api/scores?product=${product}`);
       if (!response.ok) return;
 
@@ -62,6 +73,43 @@ export default function Map({
       const scoreEntries = Object.entries(data.scores);
       const scoredCountries = Object.keys(data.scores);
 
+      // 2. Setup the base countries map
+      if (!map.current!.getLayer(allCountriesLayerId)) {
+        map.current!.addLayer({
+          id: allCountriesLayerId,
+          type: 'fill',
+          source: 'composite',
+          'source-layer': 'country_boundaries',
+          paint: {
+            'fill-color': '#000000',
+            'fill-opacity': 0
+          }
+        });
+      }
+
+      map.current!.on('click', allCountriesLayerId, (e) => {
+        const feature = e.features?.[0];
+        if (!feature) return;
+
+        const isoCode = feature.properties?.['iso_3166_1_alpha_3'];
+        const countryName = feature.properties?.['name_en'];
+        const score = data.scores?.[isoCode] ?? 'N/A';
+
+        const container = document.createElement('div');
+
+        ReactDOM.createRoot(container).render(
+          <MapPopup country={countryName} iso={isoCode} score={score} />
+        );
+
+        if (popupRef.current) popupRef.current.remove();
+
+        popupRef.current = new mapboxgl.Popup()
+          .setLngLat(e.lngLat)
+          .setDOMContent(container)
+          .addTo(map.current!);
+      });
+
+      // Handle populating the map with the scores
       const colorMatchExpression: mapboxgl.ExpressionSpecification = [
         'match',
         ['get', 'iso_3166_1_alpha_3'],
@@ -72,7 +120,7 @@ export default function Map({
         '#000000'
       ];
 
-      // If there are no results, remove the layer
+      // If there are no results, remove the scoring layer
       if (scoredCountries.length === 0) {
         if (map.current!.getLayer(fillLayerId)) {
           map.current!.removeLayer(fillLayerId);
@@ -106,8 +154,6 @@ export default function Map({
         });
       }
     }
-
-    // return () => map.current?.remove();
   }, [center, zoom, product]);
 
   return <div ref={mapContainer} className='w-full h-full' />;

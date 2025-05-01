@@ -28,3 +28,15 @@ body {
 .mapboxgl-ctrl-attrib {
   display: none;
 }
+
+.mapboxgl-popup {
+  @apply w-[600px] max-w-full;
+}
+
+.mapboxgl-popup .mapboxgl-popup-content {
+  @apply p-4;
+}
+
+.mapboxgl-popup .mapboxgl-popup-close-button {
+  @apply text-gray-800 text-xl mr-2 mt-0;
+}
