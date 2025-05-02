@@ -12,7 +12,7 @@ export default function Post({ post }: Props) {
         Commented on <span className='text-gray-500'>{getPostDate(post)}</span>
       </p>
       <p>Score: {post.score}</p>
-      {post.comment ? <p>{post.comment}</p> : null}
+      <p className='mt-2'>{post.comment ? <p>{post.comment}</p> : null}</p>
     </div>
   );
 }
