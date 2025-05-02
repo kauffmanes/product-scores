@@ -40,10 +40,10 @@ export default async function Posts({ product, iso, country, score }: Props) {
             <p className='flex-1 '>
               <strong>Overall score: </strong>
               <br />
-              {score !== undefined ? Math.floor(score) : 'N/A'}
+              {score !== undefined ? score.toFixed(1) : 'N/A'}
             </p>
           </div>
-          <CreatePost />
+          <CreatePost iso={iso} product={product} />
           <div className='flex flex-col gap-2'>{renderPosts()}</div>
         </>
       ) : (

@@ -1,3 +1,6 @@
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
 export function getFeatureCenter(
   feature: mapboxgl.GeoJSONFeature
 ): [number, number] {
@@ -21,4 +24,9 @@ export function getColorForScore(score: number): string {
   const clamped = Math.max(0, Math.min(100, score));
   const hue = (clamped / 100) * 120;
   return `hsl(${hue}, 100%, 40%)`;
+}
+
+// Utility function for combining Tailwind classes
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
 }

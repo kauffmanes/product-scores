@@ -31,3 +31,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - better checking of URL params (invariant, make sure it's in the list)
 - zoom to selected country based on ISO URL param
 - Pagination
+- Edit a comment
+
+## Todo
+
+- make dev deps are correct in package.json
