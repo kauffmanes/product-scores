@@ -33,8 +33,6 @@ export async function createPost(data: PostData): Promise<ActionResponse> {
 
     const validationResult = PostSchema.safeParse(data);
 
-    console.log('data from within the action', data);
-
     if (!validationResult.success) {
       return {
         success: false,

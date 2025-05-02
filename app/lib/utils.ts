@@ -26,7 +26,6 @@ export function getColorForScore(score: number): string {
   return `hsl(${hue}, 100%, 40%)`;
 }
 
-// Utility function for combining Tailwind classes
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

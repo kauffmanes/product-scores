@@ -54,7 +54,6 @@ export default async function Home({
           zoom={3}
           product={product}
           scores={scores}
-          iso={iso}
         />
         <MapLegend />
       </main>

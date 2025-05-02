@@ -198,7 +198,10 @@ export default function Map({
       map.current.on('load', () => {
         initMapLayers();
 
-        // TODO
+        /**
+         * Todo - add this in if you want to fly to a specific country
+         * based on the iso in the URL.
+         */
         // if (iso) {
         //   const features = map.current!.querySourceFeatures('composite', {
         //     sourceLayer: 'country_boundaries',

@@ -12,7 +12,7 @@ export default function MapPopup({ country, iso, score }: Props) {
       </div>
       <div className='mt-1'>
         <span className='font-medium'>Score:</span>{' '}
-        <span className='text-green-600'>{score}</span>
+        <span className='text-green-600'>{score ?? 'N/A'}</span>
       </div>
     </div>
   );

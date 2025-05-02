@@ -4,23 +4,22 @@ This application is built with Next.js and captures user scores for the differen
 
 ## Getting Started
 
+This was tested using Node v22.15.0. I have not tested older versions, although it may work.
+
 First, copy `.env.example` as `.env` and add the keys. These should come from Emily via email.
 
 Then, run the development server:
 
 ```bash
+npm i
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Function Specs
-
-## Non-functional Specs
-
 ## Decisions
 
-- made an API route instead of hitting the FastAPI directly to hide the API key
+- made server actions/server utils instead of hitting the FastAPI directly from the client to hide the API key
 - passing the country name as a URL param but would preferred to have queried country info from some endpoint
 - wanted the popup to show if ISO is in the URL on page load but my centering function is not the best
 
@@ -32,6 +31,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - zoom to selected country based on ISO URL param
 - Pagination
 - Edit a comment
+- BUG: if you click a country, then create a new comment, the country color recalculates but because the MapPopup does not update with the new value
+- BUG: would have preferred to have the country labels go over top of the coloring label
+- BUG: numbers are calculated and can be multiple digits -> should we truncate somewhere?
 
 ## Todo
 
