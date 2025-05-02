@@ -22,6 +22,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 - made an API route instead of hitting the FastAPI directly to hide the API key
 - passing the country name as a URL param but would preferred to have queried country info from some endpoint
+- wanted the popup to show if ISO is in the URL on page load but my centering function is not the best
 
 ## Future Work and Enhancements
 

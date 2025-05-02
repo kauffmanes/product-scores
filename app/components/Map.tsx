@@ -4,8 +4,9 @@ import { useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 import ReactDOM from 'react-dom/client';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl, { LngLatLike } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { getColorForScore } from '../lib/utils';
 
 import MapPopup from './MapPopup';
 import { Product } from '../types';
@@ -45,21 +46,17 @@ export default function Map({
     map.current!.getCanvas().style.cursor = '';
   }, [map]);
 
-  const handleCountryClick = useCallback(
-    (e: mapboxgl.MapMouseEvent) => {
-      const feature = e.features?.[0];
-      if (!feature) return;
-
-      // const latLng = e.lngLat;
-      const isoCode = feature.properties?.['iso_3166_1_alpha_3'];
-      const countryName = feature.properties?.['name_en'];
+  const showPopupForFeature = useCallback(
+    ({
+      isoCode,
+      countryName,
+      lngLat
+    }: {
+      isoCode: string;
+      countryName: string;
+      lngLat: LngLatLike;
+    }) => {
       const score = scores?.[isoCode] ?? 'N/A';
-
-      const params = new URLSearchParams(window.location.search);
-
-      params.set('iso', isoCode);
-      params.set('country', countryName);
-      router.push(`${window.location.pathname}?${params.toString()}`);
 
       const container = document.createElement('div');
 
@@ -70,11 +67,34 @@ export default function Map({
       if (popupRef.current) popupRef.current.remove();
 
       popupRef.current = new mapboxgl.Popup()
-        .setLngLat(e.lngLat)
+        .setLngLat(lngLat)
         .setDOMContent(container)
         .addTo(map.current!);
     },
-    [router, popupRef, map, scores]
+    [scores]
+  );
+
+  const handleCountryClick = useCallback(
+    (e: mapboxgl.MapMouseEvent) => {
+      const feature = e.features?.[0];
+      if (!feature) return;
+
+      const isoCode = feature.properties?.['iso_3166_1_alpha_3'];
+      const countryName = feature.properties?.['name_en'];
+
+      const params = new URLSearchParams(window.location.search);
+
+      params.set('iso', isoCode);
+      params.set('country', countryName);
+      router.push(`${window.location.pathname}?${params.toString()}`);
+
+      showPopupForFeature({
+        isoCode,
+        countryName,
+        lngLat: e.lngLat
+      });
+    },
+    [router, showPopupForFeature]
   );
 
   const addScoresToMap = useCallback(() => {
@@ -139,7 +159,7 @@ export default function Map({
     // 2. Setup new events
     map.current!.on('mouseenter', allCountriesLayerId, setPointerCursor);
 
-    map.current!.on('mouseleave', allCountriesLayerId, () => resetCursor);
+    map.current!.on('mouseleave', allCountriesLayerId, resetCursor);
 
     // 3. Setup click events
     map.current!.on('click', allCountriesLayerId, handleCountryClick);
@@ -178,13 +198,31 @@ export default function Map({
       map.current.on('load', () => {
         initMapLayers();
 
-        // center the map on the ISO
-        // if (country) {
-        //   map.current?.flyTo({
-        //     center: country.coordinates,
-        //     zoom: 1,
-        //     essential: true
+        // TODO
+        // if (iso) {
+        //   const features = map.current!.querySourceFeatures('composite', {
+        //     sourceLayer: 'country_boundaries',
+        //     filter: ['==', 'iso_3166_1_alpha_3', iso]
         //   });
+
+        //   if (features.length > 0) {
+        //     const feature = features[0];
+        //     const center = getFeatureCenter(feature);
+
+        //     if (feature) {
+        //       showPopupForFeature({
+        //         isoCode: iso,
+        //         countryName: feature.properties?.['name_en'],
+        //         lngLat: center
+        //       });
+        //     }
+
+        //     map.current!.flyTo({
+        //       center: feature.geometry.coordinates,
+        //       essential: true,
+        //       zoom
+        //     });
+        //   }
         // }
       });
     } else {
@@ -206,10 +244,4 @@ export default function Map({
   }, [product]);
 
   return <div ref={mapContainer} className='w-full h-full' />;
-}
-
-function getColorForScore(score: number): string {
-  const clamped = Math.max(0, Math.min(100, score));
-  const hue = (clamped / 100) * 120;
-  return `hsl(${hue}, 100%, 40%)`;
 }
