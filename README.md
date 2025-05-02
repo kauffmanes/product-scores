@@ -20,4 +20,12 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Decisions
 
+- made an API route instead of hitting the FastAPI directly to hide the API key
+- passing the country name as a URL param but would preferred to have queried country info from some endpoint
+
 ## Future Work and Enhancements
+
+- add country ISO to the URL params and auto open/loading details
+- accounts and user management -> you currently make comments as anonymous and can delete anyone elses comments
+- better checking of URL params (invariant, make sure it's in the list)
+- zoom to selected country based on ISO URL param

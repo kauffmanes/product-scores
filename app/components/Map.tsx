@@ -1,24 +1,31 @@
 'use client';
-import { useRef, useEffect } from 'react';
+
+import { useRef, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+
 import ReactDOM from 'react-dom/client';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Products } from '../constants';
 import MapPopup from './MapPopup';
+import { Product } from '../types';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
 type Props = {
   center?: [number, number];
   zoom?: number;
-  product: Products;
+  product: Product;
+  scores: Record<string, number>;
 };
 
 export default function Map({
   center = [-74.5, 40],
   zoom = 9,
-  product
+  product,
+  scores
 }: Props) {
+  const router = useRouter();
+
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
@@ -26,11 +33,115 @@ export default function Map({
   const fillLayerId = 'scored-country-fill';
   const allCountriesLayerId = 'all-countries-interaction';
 
-  useEffect(() => {
-    if (popupRef.current) {
-      popupRef.current.remove();
+  const scoreEntries = Object.entries(scores);
+  const scoredCountries = Object.keys(scores);
+
+  const handleCountryClick = useCallback(
+    (e: mapboxgl.MapMouseEvent) => {
+      const feature = e.features?.[0];
+      if (!feature) return;
+
+      // const latLng = e.lngLat;
+      const isoCode = feature.properties?.['iso_3166_1_alpha_3'];
+      const countryName = feature.properties?.['name_en'];
+      const score = scores?.[isoCode] ?? 'N/A';
+
+      const params = new URLSearchParams(window.location.search);
+
+      params.set('iso', isoCode);
+      params.set('country', countryName);
+      router.replace(`${window.location.pathname}?${params.toString()}`);
+
+      const container = document.createElement('div');
+
+      ReactDOM.createRoot(container).render(
+        <MapPopup country={countryName} iso={isoCode} score={score} />
+      );
+
+      if (popupRef.current) popupRef.current.remove();
+
+      popupRef.current = new mapboxgl.Popup()
+        .setLngLat(e.lngLat)
+        .setDOMContent(container)
+        .addTo(map.current!);
+    },
+    [router, popupRef, map, scores]
+  );
+
+  const addScoresToMap = useCallback(() => {
+    const colorMatchExpression: mapboxgl.ExpressionSpecification = [
+      'match',
+      ['get', 'iso_3166_1_alpha_3'],
+      ...scoreEntries.flatMap(([iso, score]) => [
+        iso,
+        getColorForScore(score as number)
+      ]),
+      '#000000'
+    ];
+
+    if (scoredCountries.length === 0) {
+      if (map.current!.getLayer(fillLayerId)) {
+        map.current!.removeLayer(fillLayerId);
+      }
+      return;
     }
-  }, [product]);
+
+    if (map.current!.getLayer(fillLayerId)) {
+      map.current!.setPaintProperty(
+        fillLayerId,
+        'fill-color',
+        colorMatchExpression
+      );
+      map.current!.setFilter(fillLayerId, [
+        'in',
+        'iso_3166_1_alpha_3',
+        ...scoredCountries
+      ]);
+    } else {
+      map.current!.addLayer({
+        id: fillLayerId,
+        type: 'fill',
+        source: 'composite',
+        'source-layer': 'country_boundaries',
+        filter: ['in', 'iso_3166_1_alpha_3', ...scoredCountries],
+        paint: {
+          'fill-color': colorMatchExpression,
+          'fill-opacity': 0.8
+        }
+      });
+    }
+  }, [map, fillLayerId, scoreEntries, scoredCountries]);
+
+  const initMapLayers = useCallback(() => {
+    // 1. Build the base country layer
+    if (!map.current!.getLayer(allCountriesLayerId)) {
+      map.current!.addLayer({
+        id: allCountriesLayerId,
+        type: 'fill',
+        source: 'composite',
+        'source-layer': 'country_boundaries',
+        paint: {
+          'fill-color': '#000000',
+          'fill-opacity': 0
+        }
+      });
+    }
+
+    // 2. Setup mouse events
+    map.current!.on('mouseenter', allCountriesLayerId, () => {
+      map.current!.getCanvas().style.cursor = 'pointer';
+    });
+
+    map.current!.on('mouseleave', allCountriesLayerId, () => {
+      map.current!.getCanvas().style.cursor = '';
+    });
+
+    // 3. Setup click events
+    map.current!.on('click', allCountriesLayerId, handleCountryClick);
+
+    // 4. Add the scores to the map
+    addScoresToMap();
+  }, [handleCountryClick, addScoresToMap]);
 
   useEffect(() => {
     /**
@@ -50,111 +161,34 @@ export default function Map({
       });
 
       map.current.on('load', () => {
-        loadScores(product);
+        initMapLayers();
+
+        // center the map on the ISO
+        // if (country) {
+        //   map.current?.flyTo({
+        //     center: country.coordinates,
+        //     zoom: 1,
+        //     essential: true
+        //   });
+        // }
       });
     } else {
       if (map.current.isStyleLoaded()) {
-        loadScores(product);
+        initMapLayers();
+        return;
       } else {
         map.current.once('load', () => {
-          loadScores(product);
+          initMapLayers();
         });
       }
     }
+  }, [center, zoom, initMapLayers]);
 
-    async function loadScores(product: string) {
-      // 1. Fetch the data
-      const response = await fetch(`/api/scores?product=${product}`);
-      if (!response.ok) return;
-
-      const data = await response.json();
-      if (!data.scores || typeof data.scores !== 'object') return;
-
-      const scoreEntries = Object.entries(data.scores);
-      const scoredCountries = Object.keys(data.scores);
-
-      // 2. Setup the base countries map
-      if (!map.current!.getLayer(allCountriesLayerId)) {
-        map.current!.addLayer({
-          id: allCountriesLayerId,
-          type: 'fill',
-          source: 'composite',
-          'source-layer': 'country_boundaries',
-          paint: {
-            'fill-color': '#000000',
-            'fill-opacity': 0
-          }
-        });
-      }
-
-      map.current!.on('click', allCountriesLayerId, (e) => {
-        const feature = e.features?.[0];
-        if (!feature) return;
-
-        const isoCode = feature.properties?.['iso_3166_1_alpha_3'];
-        const countryName = feature.properties?.['name_en'];
-        const score = data.scores?.[isoCode] ?? 'N/A';
-
-        const container = document.createElement('div');
-
-        ReactDOM.createRoot(container).render(
-          <MapPopup country={countryName} iso={isoCode} score={score} />
-        );
-
-        if (popupRef.current) popupRef.current.remove();
-
-        popupRef.current = new mapboxgl.Popup()
-          .setLngLat(e.lngLat)
-          .setDOMContent(container)
-          .addTo(map.current!);
-      });
-
-      // Handle populating the map with the scores
-      const colorMatchExpression: mapboxgl.ExpressionSpecification = [
-        'match',
-        ['get', 'iso_3166_1_alpha_3'],
-        ...scoreEntries.flatMap(([iso, score]) => [
-          iso,
-          getColorForScore(score as number)
-        ]),
-        '#000000'
-      ];
-
-      // If there are no results, remove the scoring layer
-      if (scoredCountries.length === 0) {
-        if (map.current!.getLayer(fillLayerId)) {
-          map.current!.removeLayer(fillLayerId);
-        }
-        return;
-      }
-
-      // If the layer exists, update its paint and filter
-      if (map.current!.getLayer(fillLayerId)) {
-        map.current!.setPaintProperty(
-          fillLayerId,
-          'fill-color',
-          colorMatchExpression
-        );
-        map.current!.setFilter(fillLayerId, [
-          'in',
-          'iso_3166_1_alpha_3',
-          ...scoredCountries
-        ]);
-      } else {
-        map.current!.addLayer({
-          id: fillLayerId,
-          type: 'fill',
-          source: 'composite',
-          'source-layer': 'country_boundaries',
-          filter: ['in', 'iso_3166_1_alpha_3', ...scoredCountries],
-          paint: {
-            'fill-color': colorMatchExpression,
-            'fill-opacity': 0.8
-          }
-        });
-      }
+  useEffect(() => {
+    if (popupRef.current) {
+      popupRef.current.remove();
     }
-  }, [center, zoom, product]);
+  }, [product]);
 
   return <div ref={mapContainer} className='w-full h-full' />;
 }

@@ -1,15 +1,9 @@
-export enum Products {
-  LandCoverFL = '001',
-  LandEligibilityFL = '002',
-  ARRScopingReport = '003',
-  REDDScopingReport = '004',
-  ARREligibilityFast = '005'
-}
+import { Product } from './types';
 
 export const productNames = {
-  [Products.LandCoverFL]: 'Land Cover FL',
-  [Products.LandEligibilityFL]: 'Land Eligibility FL',
-  [Products.ARRScopingReport]: 'ARR Scoping Report',
-  [Products.REDDScopingReport]: 'REDD Scoping Report',
-  [Products.ARREligibilityFast]: 'ARR Eligibility Fast'
+  [Product.LandCoverFL]: 'Land Cover FL',
+  [Product.LandEligibilityFL]: 'Land Eligibility FL',
+  [Product.ARRScopingReport]: 'ARR Scoping Report',
+  [Product.REDDScopingReport]: 'REDD Scoping Report',
+  [Product.ARREligibilityFast]: 'ARR Eligibility Fast'
 };
