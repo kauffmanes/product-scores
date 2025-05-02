@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import ReactDOM from 'react-dom/client';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+
 import MapPopup from './MapPopup';
 import { Product } from '../types';
 
@@ -36,6 +37,14 @@ export default function Map({
   const scoreEntries = Object.entries(scores);
   const scoredCountries = Object.keys(scores);
 
+  const setPointerCursor = useCallback(() => {
+    map.current!.getCanvas().style.cursor = 'pointer';
+  }, [map]);
+
+  const resetCursor = useCallback(() => {
+    map.current!.getCanvas().style.cursor = '';
+  }, [map]);
+
   const handleCountryClick = useCallback(
     (e: mapboxgl.MapMouseEvent) => {
       const feature = e.features?.[0];
@@ -50,7 +59,7 @@ export default function Map({
 
       params.set('iso', isoCode);
       params.set('country', countryName);
-      router.replace(`${window.location.pathname}?${params.toString()}`);
+      router.push(`${window.location.pathname}?${params.toString()}`);
 
       const container = document.createElement('div');
 
@@ -127,21 +136,27 @@ export default function Map({
       });
     }
 
-    // 2. Setup mouse events
-    map.current!.on('mouseenter', allCountriesLayerId, () => {
-      map.current!.getCanvas().style.cursor = 'pointer';
-    });
+    // 2. Setup new events
+    map.current!.on('mouseenter', allCountriesLayerId, setPointerCursor);
 
-    map.current!.on('mouseleave', allCountriesLayerId, () => {
-      map.current!.getCanvas().style.cursor = '';
-    });
+    map.current!.on('mouseleave', allCountriesLayerId, () => resetCursor);
 
     // 3. Setup click events
     map.current!.on('click', allCountriesLayerId, handleCountryClick);
 
     // 4. Add the scores to the map
     addScoresToMap();
-  }, [handleCountryClick, addScoresToMap]);
+  }, [handleCountryClick, addScoresToMap, setPointerCursor, resetCursor]);
+
+  // clean up event listeners
+  useEffect(() => {
+    return () => {
+      // remove the event listeners - prevents excess requests
+      map.current!.off('click', allCountriesLayerId, handleCountryClick);
+      map.current!.off('mouseenter', allCountriesLayerId, setPointerCursor);
+      map.current!.off('mouseleave', allCountriesLayerId, resetCursor);
+    };
+  }, [handleCountryClick, setPointerCursor, resetCursor]);
 
   useEffect(() => {
     /**

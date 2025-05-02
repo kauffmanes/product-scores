@@ -7,15 +7,20 @@ import Logo from '@/app/components/Logo';
 import Posts from '@/app/components/Posts';
 import { Product } from './types';
 import { fetchScores } from './lib/scores';
+
 export default async function Home({
   searchParams
 }: {
-  searchParams: { [key: string]: string | string[] | undefined }; // fix
+  searchParams: Promise<{
+    product?: Product;
+    iso?: string;
+    country?: string;
+  }>;
 }) {
   const params = await searchParams;
-  const product = params.product as Product | undefined;
-  const iso = params.iso as string | undefined;
-  const country = params.country as string | undefined;
+  const product = params.product;
+  const iso = params.iso;
+  const country = params.country;
 
   // If no product is specified, redirect with default product
   if (!product) {
@@ -24,8 +29,7 @@ export default async function Home({
     redirect(`/?${params.toString()}`);
   }
 
-  const { status, message, scores } = await fetchScores(product, iso);
-  // get score for country
+  const { scores } = await fetchScores(product);
 
   const activeCountryScore = iso ? scores?.[iso] : undefined;
 

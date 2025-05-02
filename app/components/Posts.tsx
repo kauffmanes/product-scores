@@ -7,7 +7,7 @@ type Props = {
   product: Product;
   iso: string | undefined;
   country: string | undefined;
-  score: number | undefined;
+  score?: number | undefined;
 };
 
 export default async function Posts({ product, iso, country, score }: Props) {
