@@ -5,6 +5,7 @@ import MapLegend from '@/app/components/MapLegend';
 import ProductSelector from '@/app/components/ProductSelector';
 import Logo from '@/app/components/Logo';
 import Posts from '@/app/components/Posts';
+import CollapsiblePanel from '@/app/components/CollapsiblePanel';
 import { Product } from './types';
 import { fetchScores } from './lib/scores';
 
@@ -35,11 +36,11 @@ export default async function Home({
 
   return (
     <div className='w-full h-full flex flex-col'>
-      <header className='h-16 border-b border-gray-200  p-4 sm:flex items-center gap-4 fixed top-0 left-0 right-0 bg-background box-shadow-lg'>
+      <header className='h-16 border-b border-gray-200 p-4 sm:flex items-center gap-4 fixed top-0 left-0 right-0 bg-background box-shadow-lg'>
         <Logo />
       </header>
       <main className='flex-1 mt-16 relative bg-gray-500'>
-        <div className='absolute top-0 left-0 bottom-0 sm:bottom-4 sm:left-4 sm:top-4 sm:rounded-sm bg-white box-shadow-lg w-full sm:w-96 z-10 flex flex-col gap-2'>
+        <CollapsiblePanel>
           <ProductSelector product={product} />
           <hr className='border-gray-200' />
           <Posts
@@ -48,7 +49,7 @@ export default async function Home({
             country={country}
             score={activeCountryScore}
           />
-        </div>
+        </CollapsiblePanel>
         <Map
           center={[-79.9972, 40.4387]}
           zoom={3}

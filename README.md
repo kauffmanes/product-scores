@@ -34,6 +34,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - BUG: if you click a country, then create a new comment, the country color recalculates but because the MapPopup does not update with the new value
 - BUG: would have preferred to have the country labels go over top of the coloring label
 - BUG: numbers are calculated and can be multiple digits -> should we truncate somewhere?
+- Ability to delete a comment
+- Unit tests
 
 ## Todo
 
