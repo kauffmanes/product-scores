@@ -19,18 +19,19 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Decisions
 
-- made server actions/server utils instead of hitting the FastAPI directly from the client so I could hide the API key
-- queried data from server components via libs
-- mutated data via server actions (actions folder)
-- passing the country name as a URL param but would preferred to have queried country info from some endpoint
-- wanted the popup to show if ISO is in the URL on page load but my quick centering function is not the best
+- Went with Next.js for quick prototyping, MapBox for a fun challenge, and Tailwind for styling
+- Made server actions/server utils instead of hitting the FastAPI directly from the client so I could hide the API key
+- Queried data from server components via libs
+- Mutated data via server actions (actions folder)
+- Passing the country name as a URL param but would preferred to have queried country info from some endpoint
+- Wanted the popup to show if ISO is in the URL on page load but my quick centering function is not the best
 
 ## Future Work, Bugs, and Enhancements
 
-- add country ISO to the URL params and auto open/loading details popup
-- accounts and user management -> you currently make comments as anonymous and can delete anyone elses comments
-- better checking of URL params (invariant, make sure it's in the list)
-- zoom to selected country based on ISO URL param
+- Add country ISO to the URL params and auto open/loading details popup
+- Accounts and user management -> you currently make comments as anonymous and can delete anyone elses comments
+- Better checking of URL params (invariant, make sure it's in the list)
+- Zoom to selected country based on ISO URL param
 - Pagination of comments
 - BUG: if you click a country, then create a new comment, the country color recalculates but because the MapPopup does not update with the new value
 - BUG: would have preferred to have the country labels go over top of the coloring label
