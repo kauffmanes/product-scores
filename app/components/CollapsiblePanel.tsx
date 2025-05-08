@@ -43,9 +43,7 @@ export default function CollapsiblePanel({ children }: Props) {
         </div>
       </button>
       <div
-        className={`overflow-y-auto flex-1 ${
-          open || typeof window === 'undefined' ? '' : 'hidden'
-        } sm:block`}
+        className={`overflow-y-auto flex-1 ${open ? '' : 'hidden'} sm:block`}
       >
         {children}
       </div>
