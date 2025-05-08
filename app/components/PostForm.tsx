@@ -2,8 +2,8 @@
 
 import { useActionState } from 'react';
 import Form from 'next/form';
-import { createPost, ActionResponse } from '../actions/posts';
-import { Product } from '../types';
+import { createPost, updatePost, ActionResponse } from '../actions/posts';
+import { Post, Product } from '../types';
 import { useRouter } from 'next/navigation';
 import { cn } from '../lib/utils';
 
@@ -13,13 +13,29 @@ const initialState: ActionResponse = {
   errors: undefined
 };
 
-export default function CreatePost({
+type Props =
+  | {
+      iso: string;
+      product: Product;
+      post?: never;
+      isEditing?: false;
+      closeForm?: never;
+    }
+  | {
+      iso: string;
+      product: Product;
+      post: Post;
+      isEditing: true;
+      closeForm: () => void;
+    };
+
+export default function PostForm({
   iso,
-  product
-}: {
-  iso: string;
-  product: Product;
-}) {
+  product,
+  post,
+  isEditing,
+  closeForm
+}: Props) {
   const router = useRouter();
 
   const [state, formAction, isPending] = useActionState<
@@ -36,10 +52,13 @@ export default function CreatePost({
     };
 
     try {
-      const result = await createPost(data);
+      const result = isEditing
+        ? await updatePost(post.id, data)
+        : await createPost(data);
 
       if (result.success) {
         router.refresh();
+        closeForm?.();
       }
 
       return result;
@@ -64,6 +83,7 @@ export default function CreatePost({
             max={100}
             required
             step={1}
+            defaultValue={post?.score}
             className={cn(
               'w-full border rounded-md p-2',
               state?.errors?.score ? 'border-red-500' : ''
@@ -84,6 +104,7 @@ export default function CreatePost({
             disabled={isPending}
             minLength={3}
             maxLength={300}
+            defaultValue={post?.comment || ''}
             className={cn(
               'w-full border rounded-md p-2',
               state?.errors?.comment ? 'border-red-500' : ''
@@ -95,13 +116,25 @@ export default function CreatePost({
             </p>
           ) : null}
         </div>
-        <button
-          type='submit'
-          className='bg-gray-700 text-white p-1 px-2 rounded-sm'
-          disabled={isPending}
-        >
-          {isPending ? 'Creating...' : 'Create'}
-        </button>
+        <div className='flex gap-2'>
+          {isEditing ? (
+            <button
+              type='button'
+              className='border border-gray-300 rounded-md p-1 px-2'
+              disabled={isPending}
+              onClick={closeForm}
+            >
+              Cancel
+            </button>
+          ) : null}
+          <button
+            type='submit'
+            disabled={isPending}
+            className='bg-gray-700 text-white p-1 px-2 rounded-sm'
+          >
+            {isPending ? 'Saving...' : isEditing ? 'Update' : 'Create'}
+          </button>
+        </div>
       </Form>
     </div>
   );

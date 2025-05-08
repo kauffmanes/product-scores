@@ -1,6 +1,7 @@
+import { Suspense } from 'react';
 import { Product } from '../types';
 import Post from './Post';
-import CreatePost from './CreatePost';
+import PostForm from './PostForm';
 import { fetchPosts } from '../lib/posts';
 
 type Props = {
@@ -49,8 +50,10 @@ export default async function Posts({ product, iso, country, score }: Props) {
               {score !== undefined ? score.toFixed(1) : 'N/A'}
             </p>
           </div>
-          <CreatePost iso={iso} product={product} />
-          <div className='flex flex-col gap-2'>{renderPosts()}</div>
+          <PostForm iso={iso} product={product} />
+          <Suspense fallback={<div>Loading posts...</div>}>
+            <div className='flex flex-col gap-2'>{renderPosts()}</div>
+          </Suspense>
         </>
       ) : (
         <p className='text-red-500'>Error: {message}</p>
