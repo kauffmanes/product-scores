@@ -101,3 +101,26 @@ export async function updatePost(
     };
   }
 }
+
+export async function deletePost(postId: string): Promise<ActionResponse> {
+  try {
+    if (!fastApiUrl || !fastApiKey) {
+      throw new Error('FAST_API_URL and FAST_API_KEY must be set');
+    }
+
+    await fetch(`${fastApiUrl}/posts/${postId}`, {
+      method: 'DELETE',
+      headers: {
+        'X-API-Key': fastApiKey
+      }
+    });
+
+    return { success: true, message: 'Post deleted successfully' };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'An error occurred',
+      error: (error as Error).message
+    };
+  }
+}

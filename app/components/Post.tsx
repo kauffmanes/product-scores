@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { getLocaleDate } from '../lib/utils';
 import { type Post as PostType } from '../types';
+import DeletePost from './DeletePost';
 import PostForm from './PostForm';
 
 type Props = {
@@ -35,7 +36,7 @@ export default function Post({ post }: Props) {
             product={post.product}
             post={post}
             isEditing
-            onCancel={() => setIsEditing(false)}
+            closeForm={() => setIsEditing(false)}
           />
         </>
       ) : (
@@ -47,6 +48,7 @@ export default function Post({ post }: Props) {
           </div>
           <div className='flex gap-2'>
             <button onClick={() => setIsEditing(true)}>Edit</button>
+            <DeletePost post={post} />
           </div>
         </div>
       )}

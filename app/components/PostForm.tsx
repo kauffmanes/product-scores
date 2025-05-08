@@ -19,14 +19,14 @@ type Props =
       product: Product;
       post?: never;
       isEditing?: false;
-      onCancel?: never;
+      closeForm?: never;
     }
   | {
       iso: string;
       product: Product;
       post: Post;
       isEditing: true;
-      onCancel: () => void;
+      closeForm: () => void;
     };
 
 export default function PostForm({
@@ -34,7 +34,7 @@ export default function PostForm({
   product,
   post,
   isEditing,
-  onCancel
+  closeForm
 }: Props) {
   const router = useRouter();
 
@@ -58,6 +58,7 @@ export default function PostForm({
 
       if (result.success) {
         router.refresh();
+        closeForm?.();
       }
 
       return result;
@@ -82,7 +83,7 @@ export default function PostForm({
             max={100}
             required
             step={1}
-            defaultValue={post?.score || 50}
+            defaultValue={post?.score}
             className={cn(
               'w-full border rounded-md p-2',
               state?.errors?.score ? 'border-red-500' : ''
@@ -121,7 +122,7 @@ export default function PostForm({
               type='button'
               className='border border-gray-300 rounded-md p-1 px-2'
               disabled={isPending}
-              onClick={onCancel}
+              onClick={closeForm}
             >
               Cancel
             </button>
