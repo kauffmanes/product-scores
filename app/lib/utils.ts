@@ -29,3 +29,8 @@ export function getColorForScore(score: number): string {
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+export function getLocaleDate(dateStr: string) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString();
+}
