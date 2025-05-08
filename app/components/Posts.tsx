@@ -11,7 +11,13 @@ type Props = {
 };
 
 export default async function Posts({ product, iso, country, score }: Props) {
-  if (!iso) return null;
+  if (!iso) {
+    return (
+      <p className='m-2 ext-gray-500 text-center p-6 bg-gray-100 rounded-md'>
+        Select a country to get started.
+      </p>
+    );
+  }
 
   const { status, message, posts } = await fetchPosts(iso, product);
 
