@@ -14,7 +14,7 @@ export default function Post({ post }: Props) {
         <span className='text-gray-500'>{getLocaleDate(post.last_update)}</span>
       </p>
       <p>Score: {post.score}</p>
-      <p className='mt-2'>{post.comment ? <p>{post.comment}</p> : null}</p>
+      <p className='mt-2'>{post.comment ? post.comment : null}</p>
     </div>
   );
 }
