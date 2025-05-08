@@ -61,3 +61,43 @@ export async function createPost(data: PostData): Promise<ActionResponse> {
     };
   }
 }
+
+export async function updatePost(
+  postId: string,
+  data: Partial<PostData>
+): Promise<ActionResponse> {
+  try {
+    if (!fastApiUrl || !fastApiKey) {
+      throw new Error('FAST_API_URL and FAST_API_KEY must be set');
+    }
+
+    const validationResult = PostSchema.partial().safeParse(data);
+
+    if (!validationResult.success) {
+      return {
+        success: false,
+        message: 'Validation failed',
+        errors: validationResult.error.flatten().fieldErrors
+      };
+    }
+
+    const validatedData = validationResult.data;
+
+    await fetch(`${fastApiUrl}/posts/${postId}`, {
+      method: 'PUT',
+      headers: {
+        'X-API-Key': fastApiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(validatedData)
+    });
+
+    return { success: true, message: 'Post updated successfully' };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'An error occurred',
+      error: (error as Error).message
+    };
+  }
+}
